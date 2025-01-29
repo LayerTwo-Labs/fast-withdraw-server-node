@@ -23,7 +23,7 @@ A Node.js server that facilitates fast withdrawals from Layer 2 chains (Thunder,
 
 ## API Reference
 
-The server will run on port 3000 by default.
+The server will run on port 3333 by default.
 
 ### Create Withdrawal Request
 
@@ -50,7 +50,7 @@ curl -X POST -H "Content-Type: application/json" \
     "withdrawal_amount": "1",
     "layer_2_chain_name": "Thunder"
   }' \
-  http://localhost:3000/withdraw
+  http://localhost:3333/withdraw
 ```
 
 #### Example Response
@@ -98,7 +98,7 @@ curl -X POST -H "Content-Type: application/json" \
     "hash": "c05f10079f9b4861aac0257cdd98b491463cd219d74e77e12efb78472d779b31",
     "txid": "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e98316"
   }' \
-  http://localhost:3000/paid
+  http://localhost:3333/paid
 ```
 
 #### Example Response
