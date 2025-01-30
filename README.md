@@ -15,6 +15,7 @@ A Node.js server that facilitates fast withdrawals from Layer 2 chains (Thunder,
 
 - Node.js
 - Bitcoin node running (for L1 operations)
+- Enforcer running (So that L2s can run)
 - Thunder node running (for L2 operations)
 - Thunder CLI installed at `~/Downloads/thunder-cli`
 - BitNames node running (for L2 operations)
