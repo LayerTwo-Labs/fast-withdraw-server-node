@@ -88,7 +88,7 @@ async function getAddressThunder() {
     try {
         console.log("Getting Thunder address via CLI");
         return new Promise((resolve, reject) => {
-            exec('~/Downloads/thunder-cli get-new-address', (error, stdout, stderr) => {
+            exec('~/Downloads/thunder-cli-latest-x86_64-unknown-linux-gnu get-new-address', (error, stdout, stderr) => {
                 if (error) {
                     console.error('Failed to get Thunder address:', error);
                     reject(error);
