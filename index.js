@@ -2,32 +2,25 @@ const { exec } = require('child_process');
 const express = require('express');
 const crypto = require('crypto');
 const axios = require('axios');
+const { config, verifyConfig } = require('./config');
 const app = express();
 
 const SERVER_FEE_SATS = 1000
 
 // Bitcoin-patched RPC interaction
 
-// Bitcoin RPC configuration
-const rpcConfigBTC = {
-    host: '127.0.0.1',
-    port: 38332,
-    user: 'user',
-    password: 'password'
-};
-
 // Make RPC calls to Bitcoin node
 async function makeRpcCallBTC(method, params = []) {
     try {
-        const response = await axios.post(`http://${rpcConfigBTC.host}:${rpcConfigBTC.port}`, {
+        const response = await axios.post(`http://${config.bitcoin.host}:${config.bitcoin.port}`, {
             jsonrpc: '1.0',
             id: 'fastwithdrawal',
             method,
             params
         }, {
             auth: {
-                username: rpcConfigBTC.user,
-                password: rpcConfigBTC.password
+                username: config.bitcoin.user,
+                password: config.bitcoin.password
             }
         });
         return response.data.result;
@@ -88,7 +81,7 @@ async function getAddressThunder() {
     try {
         console.log("Getting Thunder address via CLI");
         return new Promise((resolve, reject) => {
-            exec('~/Downloads/thunder-cli-latest-x86_64-unknown-linux-gnu get-new-address', (error, stdout, stderr) => {
+            exec(`${config.thunder.cliPath} get-new-address`, (error, stdout, stderr) => {
                 if (error) {
                     console.error('Failed to get Thunder address:', error);
                     reject(error);
@@ -126,7 +119,7 @@ async function getAddressBitNames() {
     try {
         console.log("Getting BitNames address via CLI");
         return new Promise((resolve, reject) => {
-            exec('~/Downloads/bitnames-cli get-new-address', (error, stdout, stderr) => {
+            exec(`${config.bitnames.cliPath} get-new-address`, (error, stdout, stderr) => {
                 if (error) {
                     console.error('Failed to get BitNames address:', error);
                     reject(error);
@@ -348,8 +341,21 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
-const PORT = process.env.PORT || 3333;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Verify CLI tools before starting server
+async function startServer() {
+    try {
+        await verifyConfig(config);
+        
+        // Start server
+        const PORT = process.env.PORT || 3333;
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error.message);
+        process.exit(1);
+    }
+}
+
+// Replace the existing server start code at the bottom with:
+startServer();

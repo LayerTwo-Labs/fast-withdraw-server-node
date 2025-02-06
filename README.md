@@ -17,10 +17,60 @@ A Node.js server that facilitates fast withdrawals from Layer 2 chains (Thunder,
 - Bitcoin node running (for L1 operations)
 - Enforcer running (So that L2s can run)
 - Thunder node running (for L2 operations)
-- Thunder CLI installed at `~/Downloads/thunder-cli`
+- Thunder CLI installed
 - BitNames node running (for L2 operations)
-- BitNames CLI installed at `~/Downloads/bitnames-cli`
+- BitNames CLI installed
 
+## Configuration
+
+The server can be configured through environment variables or by modifying the default values in `config.js`.
+
+### Bitcoin Core Configuration
+
+Configure the Bitcoin Core RPC connection:
+
+```
+BITCOIN_RPC_HOST=127.0.0.1     # Bitcoin Core RPC host
+BITCOIN_RPC_PORT=38332         # Bitcoin Core RPC port
+BITCOIN_RPC_USER=user          # Bitcoin Core RPC username
+BITCOIN_RPC_PASS=password      # Bitcoin Core RPC password
+```
+
+### Layer 2 CLI Tools
+
+Configure paths to Layer 2 command-line tools:
+
+```
+THUNDER_CLI_PATH=/path/to/thunder-cli     # Path to Thunder CLI executable
+BITNAMES_CLI_PATH=/path/to/bitnames-cli   # Path to BitNames CLI executable
+```
+
+Default paths in `config.js` are:
+- Thunder CLI: `~/Downloads/thunder-cli`
+- BitNames CLI: `~/Downloads/bitnames-cli`
+
+The server will verify that these executables exist and are accessible before starting.
+
+### Server Configuration
+
+Other server settings:
+
+```
+PORT=3333    # Server port (optional, defaults to 3333)
+```
+
+## Starting the Server
+
+1. Ensure Bitcoin Core is running and accessible
+2. Verify Thunder and BitNames CLI tools are installed and executable
+3. Set environment variables or update config.js as needed
+4. Run the server:
+
+```
+node index.js
+```
+
+The server will verify all CLI tools are accessible before starting. If any tools are missing or not executable, it will exit with an error message.
 
 ## API Reference
 
