@@ -3,10 +3,11 @@ FROM node:22-slim
 
 WORKDIR /app
 
-# Install dependencies for downloading and extracting
+# Install dependencies for Docker health check, downloading and extracting
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Create directory for CLI tools
@@ -42,6 +43,8 @@ ENV THUNDER_CLI_PATH=/bin/thunder-cli \
 
 # Expose the server port
 EXPOSE 3333
+
+HEALTHCHECK CMD ["curl", "--fail", "http://localhost:3333"]
 
 # Start the server
 CMD ["node", "index.js"]
