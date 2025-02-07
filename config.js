@@ -2,6 +2,7 @@ const { access, constants } = require('fs/promises');
 const path = require('path');
 const axios = require('axios');
 const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
+const { execThunderCli } = require('./utils/thunder-cli');
 
 // Default configuration values
 const defaultConfig = {
@@ -12,7 +13,8 @@ const defaultConfig = {
         password: 'password'
     },
     thunder: {
-        cliPath: '~/Downloads/thunder-cli'
+        cliPath: '~/Downloads/thunder-cli',
+        rpcAddr: '127.0.0.1:6009'  // Add default Thunder RPC address
     },
     bitnames: {
         cliPath: '~/Downloads/bitnames-cli'
@@ -53,6 +55,20 @@ async function verifyBitcoinRpc(config) {
     }
 }
 
+// Verify Thunder node connection
+async function verifyThunderConnection(config) {
+    try {
+        console.log('Verifying Thunder node connection...');
+        await execThunderCli(config, 'balance');
+        return true;
+    } catch (error) {
+        if (error.code === 'ECONNREFUSED') {
+            throw new Error(`Could not connect to Thunder node at ${config.thunder.rpcAddr}`);
+        }
+        throw new Error(`Thunder node verification failed: ${error.message}`);
+    }
+}
+
 // Verify all CLI tools are available
 async function verifyConfig(config) {
     try {
@@ -60,6 +76,10 @@ async function verifyConfig(config) {
         console.log('Verifying Bitcoin Core RPC connection...');
         await verifyBitcoinRpc(config);
         console.log('Bitcoin Core RPC connection verified successfully');
+
+        // Then verify Thunder node connection
+        await verifyThunderConnection(config);
+        console.log('Thunder node connection verified successfully');
 
         // Then verify CLI tools
         console.log('Verifying CLI tools...');
@@ -85,7 +105,8 @@ const config = {
         password: process.env.BITCOIN_RPC_PASS || defaultConfig.bitcoin.password
     },
     thunder: {
-        cliPath: process.env.THUNDER_CLI_PATH || defaultConfig.thunder.cliPath
+        cliPath: process.env.THUNDER_CLI_PATH || defaultConfig.thunder.cliPath,
+        rpcAddr: process.env.THUNDER_RPC_ADDR || defaultConfig.thunder.rpcAddr
     },
     bitnames: {
         cliPath: process.env.BITNAMES_CLI_PATH || defaultConfig.bitnames.cliPath

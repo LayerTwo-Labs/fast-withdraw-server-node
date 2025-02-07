@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const { config, verifyConfig } = require('./config');
 const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
+const { execThunderCli } = require('./utils/thunder-cli');
 const app = express();
 
 const SERVER_FEE_SATS = 1000
@@ -60,20 +61,8 @@ async function sendToAddressBTC(address, amount) {
 async function getAddressThunder() {
     try {
         console.log("Getting Thunder address via CLI");
-        return new Promise((resolve, reject) => {
-            exec(`${config.thunder.cliPath} get-new-address`, (error, stdout, stderr) => {
-                if (error) {
-                    console.error('Failed to get Thunder address:', error);
-                    reject(error);
-                    return;
-                }
-                if (stderr) {
-                    console.error('Thunder CLI stderr:', stderr);
-                }
-                console.debug("Thunder CLI response:", stdout);
-                resolve({ info: stdout.trim() });
-            });
-        });
+        const info = await execThunderCli(config, 'get-new-address');
+        return { info };
     } catch (error) {
         console.error('Failed to get Thunder address:', error);
         throw error;

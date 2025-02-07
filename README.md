@@ -36,12 +36,16 @@ BITCOIN_RPC_USER=user          # Bitcoin Core RPC username
 BITCOIN_RPC_PASS=password      # Bitcoin Core RPC password
 ```
 
-### Layer 2 CLI Tools
+### Layer 2 Configuration
 
-Configure paths to Layer 2 command-line tools:
+Configure Layer 2 CLI paths and RPC connections:
 
 ```
+# Thunder Configuration
 THUNDER_CLI_PATH=/path/to/thunder-cli     # Path to Thunder CLI executable
+THUNDER_RPC_ADDR=127.0.0.1:42011   # Thunder RPC address
+
+# BitNames Configuration
 BITNAMES_CLI_PATH=/path/to/bitnames-cli   # Path to BitNames CLI executable
 ```
 
