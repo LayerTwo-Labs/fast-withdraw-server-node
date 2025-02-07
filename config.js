@@ -1,5 +1,7 @@
 const { access, constants } = require('fs/promises');
 const path = require('path');
+const axios = require('axios');
+const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
 
 // Default configuration values
 const defaultConfig = {
@@ -36,14 +38,36 @@ async function verifyExecutable(filePath, name) {
     }
 }
 
+// Verify Bitcoin Core RPC connection
+async function verifyBitcoinRpc(config) {
+    try {
+        await makeRpcCallBTC(config, 'getbalance');
+        return true;
+    } catch (error) {
+        if (error.code === 'ECONNREFUSED') {
+            throw new Error(`Could not connect to Bitcoin Core at ${config.bitcoin.host}:${config.bitcoin.port}`);
+        } else if (error.response && error.response.status === 401) {
+            throw new Error('Bitcoin Core RPC authentication failed. Check your username and password.');
+        }
+        throw new Error(`Bitcoin Core RPC verification failed: ${error.message}`);
+    }
+}
+
 // Verify all CLI tools are available
 async function verifyConfig(config) {
-    const verifications = [
-        verifyExecutable(config.thunder.cliPath, 'Thunder'),
-        verifyExecutable(config.bitnames.cliPath, 'BitNames')
-    ];
-    
     try {
+        // First verify Bitcoin Core connection
+        console.log('Verifying Bitcoin Core RPC connection...');
+        await verifyBitcoinRpc(config);
+        console.log('Bitcoin Core RPC connection verified successfully');
+
+        // Then verify CLI tools
+        console.log('Verifying CLI tools...');
+        const verifications = [
+            verifyExecutable(config.thunder.cliPath, 'Thunder'),
+            verifyExecutable(config.bitnames.cliPath, 'BitNames')
+        ];
+        
         await Promise.all(verifications);
         console.log('All CLI tools verified successfully');
     } catch (error) {

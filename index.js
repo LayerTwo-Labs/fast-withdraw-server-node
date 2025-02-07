@@ -3,37 +3,17 @@ const express = require('express');
 const crypto = require('crypto');
 const axios = require('axios');
 const { config, verifyConfig } = require('./config');
+const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
 const app = express();
 
 const SERVER_FEE_SATS = 1000
 
 // Bitcoin-patched RPC interaction
 
-// Make RPC calls to Bitcoin node
-async function makeRpcCallBTC(method, params = []) {
-    try {
-        const response = await axios.post(`http://${config.bitcoin.host}:${config.bitcoin.port}`, {
-            jsonrpc: '1.0',
-            id: 'fastwithdrawal',
-            method,
-            params
-        }, {
-            auth: {
-                username: config.bitcoin.user,
-                password: config.bitcoin.password
-            }
-        });
-        return response.data.result;
-    } catch (error) {
-        console.error(`RPC call failed (${method}):`, error.message);
-        throw error;
-    }
-}
-
 // RPC to get Bitcoin balance
 async function getBalanceBTC() {
     try {
-        const info = await makeRpcCallBTC('getbalance');
+        const info = await makeRpcCallBTC(config, 'getbalance');
         console.debug("getbalance response: ", info);
         return {
             info
@@ -47,7 +27,7 @@ async function getBalanceBTC() {
 // RPC to get Bitcoin address
 async function getAddressBTC() {
     try {
-        const info = await makeRpcCallBTC('getnewaddress');
+        const info = await makeRpcCallBTC(config, 'getnewaddress');
         console.debug("getnewaddress response: ", info);
         return {
             info
@@ -61,7 +41,7 @@ async function getAddressBTC() {
 // RPC to send coins to Bitcoin address
 async function sendToAddressBTC(address, amount) {
     try {
-        const info = await makeRpcCallBTC('sendtoaddress', [address, amount]);
+        const info = await makeRpcCallBTC(config, 'sendtoaddress', [address, amount]);
         console.debug("sendtoaddress response: ", info);
         return {
             info

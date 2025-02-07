@@ -33,9 +33,10 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
-# Copy built node_modules and source code
+# Copy source code including utils directory
 COPY index.js ./
 COPY config.js ./
+COPY utils ./utils/
 
 # Set environment variables for CLI paths
 ENV THUNDER_CLI_PATH=/bin/thunder-cli \
