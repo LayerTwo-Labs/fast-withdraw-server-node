@@ -5,6 +5,7 @@ const axios = require('axios');
 const { config, verifyConfig } = require('./config');
 const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
 const { execThunderCli } = require('./utils/thunder-cli');
+const { execBitnamesCli } = require('./utils/bitnames-cli');
 const app = express();
 
 const SERVER_FEE_SATS = 1000
@@ -87,20 +88,8 @@ async function verifyThunderPayment(txid, address, amount) {
 async function getAddressBitNames() {
     try {
         console.log("Getting BitNames address via CLI");
-        return new Promise((resolve, reject) => {
-            exec(`${config.bitnames.cliPath} get-new-address`, (error, stdout, stderr) => {
-                if (error) {
-                    console.error('Failed to get BitNames address:', error);
-                    reject(error);
-                    return;
-                }
-                if (stderr) {
-                    console.error('BitNames CLI stderr:', stderr);
-                }
-                console.debug("BitNames CLI response:", stdout);
-                resolve({ info: stdout.trim() });
-            });
-        });
+        const info = await execBitnamesCli(config, 'get-new-address');
+        return { info };
     } catch (error) {
         console.error('Failed to get BitNames address:', error);
         throw error;

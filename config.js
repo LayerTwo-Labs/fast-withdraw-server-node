@@ -3,6 +3,7 @@ const path = require('path');
 const axios = require('axios');
 const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
 const { execThunderCli } = require('./utils/thunder-cli');
+const { execBitnamesCli } = require('./utils/bitnames-cli');
 
 // Default configuration values
 const defaultConfig = {
@@ -17,7 +18,8 @@ const defaultConfig = {
         rpcAddr: '127.0.0.1:6009'  // Add default Thunder RPC address
     },
     bitnames: {
-        cliPath: '~/Downloads/bitnames-cli'
+        cliPath: '~/Downloads/bitnames-cli',
+        rpcAddr: '127.0.0.1:6002'  // Default BitNames RPC address
     }
 };
 
@@ -69,6 +71,20 @@ async function verifyThunderConnection(config) {
     }
 }
 
+// Add BitNames verification function
+async function verifyBitNamesConnection(config) {
+    try {
+        console.log('Verifying BitNames node connection...');
+        await execBitnamesCli(config, 'balance');
+        return true;
+    } catch (error) {
+        if (error.code === 'ECONNREFUSED') {
+            throw new Error(`Could not connect to BitNames node at ${config.bitnames.rpcAddr}`);
+        }
+        throw new Error(`BitNames node verification failed: ${error.message}`);
+    }
+}
+
 // Verify all CLI tools are available
 async function verifyConfig(config) {
     try {
@@ -80,6 +96,10 @@ async function verifyConfig(config) {
         // Then verify Thunder node connection
         await verifyThunderConnection(config);
         console.log('Thunder node connection verified successfully');
+
+        // Then verify BitNames node connection
+        await verifyBitNamesConnection(config);
+        console.log('BitNames node connection verified successfully');
 
         // Then verify CLI tools
         console.log('Verifying CLI tools...');
@@ -109,7 +129,8 @@ const config = {
         rpcAddr: process.env.THUNDER_RPC_ADDR || defaultConfig.thunder.rpcAddr
     },
     bitnames: {
-        cliPath: process.env.BITNAMES_CLI_PATH || defaultConfig.bitnames.cliPath
+        cliPath: process.env.BITNAMES_CLI_PATH || defaultConfig.bitnames.cliPath,
+        rpcAddr: process.env.BITNAMES_RPC_ADDR || defaultConfig.bitnames.rpcAddr
     }
 };
 
