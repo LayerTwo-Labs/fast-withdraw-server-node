@@ -3,7 +3,7 @@ const axios = require('axios');
 // Make RPC calls to Bitcoin node
 async function makeRpcCallBTC(config, method, params = []) {
     try {
-        const response = await axios.post(`http://${config.bitcoin.host}:${config.bitcoin.port}`, {
+        const response = await axios.post(config.bitcoin.url, {
             jsonrpc: '1.0',
             id: 'fastwithdrawal',
             method,

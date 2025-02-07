@@ -8,17 +8,18 @@ const { execBitnamesCli } = require('./utils/bitnames-cli');
 // Default configuration values
 const defaultConfig = {
     bitcoin: {
-        host: '127.0.0.1',
-        port: 38332,
+        url: 'http://127.0.0.1:38332',
         user: 'user',
         password: 'password'
     },
     thunder: {
         cliPath: '~/Downloads/thunder-cli',
-        rpcAddr: '127.0.0.1:6009'  // Add default Thunder RPC address
+        rpcUrl: 'http://127.0.0.1:6009'  // Add default Thunder RPC address
     },
     bitnames: {
         cliPath: '~/Downloads/bitnames-cli',
+        // TODO: the URL format is not yet supported by the BitNames CLI, 
+        // update this at a later point
         rpcAddr: '127.0.0.1:6002'  // Default BitNames RPC address
     }
 };
@@ -119,14 +120,13 @@ async function verifyConfig(config) {
 // Environment variable based configuration
 const config = {
     bitcoin: {
-        host: process.env.BITCOIN_RPC_HOST || defaultConfig.bitcoin.host,
-        port: parseInt(process.env.BITCOIN_RPC_PORT) || defaultConfig.bitcoin.port,
+        url: process.env.BITCOIN_RPC_URL || defaultConfig.bitcoin.url,
         user: process.env.BITCOIN_RPC_USER || defaultConfig.bitcoin.user,
         password: process.env.BITCOIN_RPC_PASS || defaultConfig.bitcoin.password
     },
     thunder: {
         cliPath: process.env.THUNDER_CLI_PATH || defaultConfig.thunder.cliPath,
-        rpcAddr: process.env.THUNDER_RPC_ADDR || defaultConfig.thunder.rpcAddr
+        rpcUrl: process.env.THUNDER_RPC_URL || defaultConfig.thunder.rpcUrl
     },
     bitnames: {
         cliPath: process.env.BITNAMES_CLI_PATH || defaultConfig.bitnames.cliPath,

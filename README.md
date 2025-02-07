@@ -30,10 +30,9 @@ The server can be configured through environment variables or by modifying the d
 Configure the Bitcoin Core RPC connection:
 
 ```
-BITCOIN_RPC_HOST=127.0.0.1     # Bitcoin Core RPC host
-BITCOIN_RPC_PORT=38332         # Bitcoin Core RPC port
-BITCOIN_RPC_USER=user          # Bitcoin Core RPC username
-BITCOIN_RPC_PASS=password      # Bitcoin Core RPC password
+BITCOIN_RPC_URL=http://127.0.0.1:38332    # Bitcoin Core RPC host
+BITCOIN_RPC_USER=user                     # Bitcoin Core RPC username
+BITCOIN_RPC_PASS=password                 # Bitcoin Core RPC password
 ```
 
 ### Layer 2 Configuration
@@ -43,11 +42,11 @@ Configure Layer 2 CLI paths and RPC connections:
 ```
 # Thunder Configuration
 THUNDER_CLI_PATH=/path/to/thunder-cli     # Path to Thunder CLI executable
-THUNDER_RPC_ADDR=127.0.0.1:42011   # Thunder RPC address
+THUNDER_RPC_URL=http://127.0.0.1:6009    # Thunder RPC address
 
 # BitNames Configuration
 BITNAMES_CLI_PATH=/path/to/bitnames-cli   # Path to BitNames CLI executable
-BITNAMES_RPC_ADDR=127.0.0.1:42012        # BitNames RPC address
+BITNAMES_RPC_ADDR=127.0.0.1:6002    # BitNames RPC address
 ```
 
 Default paths in `config.js` are:
