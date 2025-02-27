@@ -130,7 +130,7 @@ const config = {
     },
     bitnames: {
         cliPath: process.env.BITNAMES_CLI_PATH || defaultConfig.bitnames.cliPath,
-        rpcAddr: process.env.BITNAMES_RPC_ADDR || defaultConfig.bitnames.rpcAddr
+        rpcUrl: process.env.BITNAMES_RPC_URL || defaultConfig.bitnames.rpcUrl
     }
 };
 

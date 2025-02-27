@@ -46,7 +46,7 @@ THUNDER_RPC_URL=http://127.0.0.1:6009    # Thunder RPC address
 
 # BitNames Configuration
 BITNAMES_CLI_PATH=/path/to/bitnames-cli   # Path to BitNames CLI executable
-BITNAMES_RPC_ADDR=127.0.0.1:6002    # BitNames RPC address
+BITNAMES_RPC_URL=http://127.0.0.1:6002    # BitNames RPC address
 ```
 
 Default paths in `config.js` are:
