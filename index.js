@@ -2,45 +2,20 @@ const { exec } = require('child_process');
 const express = require('express');
 const crypto = require('crypto');
 const axios = require('axios');
+const { config, verifyConfig } = require('./config');
+const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
+const { execThunderCli } = require('./utils/thunder-cli');
+const { execBitnamesCli } = require('./utils/bitnames-cli');
 const app = express();
 
 const SERVER_FEE_SATS = 1000
 
 // Bitcoin-patched RPC interaction
 
-// Bitcoin RPC configuration
-const rpcConfigBTC = {
-    host: '127.0.0.1',
-    port: 38332,
-    user: 'user',
-    password: 'password'
-};
-
-// Make RPC calls to Bitcoin node
-async function makeRpcCallBTC(method, params = []) {
-    try {
-        const response = await axios.post(`http://${rpcConfigBTC.host}:${rpcConfigBTC.port}`, {
-            jsonrpc: '1.0',
-            id: 'fastwithdrawal',
-            method,
-            params
-        }, {
-            auth: {
-                username: rpcConfigBTC.user,
-                password: rpcConfigBTC.password
-            }
-        });
-        return response.data.result;
-    } catch (error) {
-        console.error(`RPC call failed (${method}):`, error.message);
-        throw error;
-    }
-}
-
 // RPC to get Bitcoin balance
 async function getBalanceBTC() {
     try {
-        const info = await makeRpcCallBTC('getbalance');
+        const info = await makeRpcCallBTC(config, 'getbalance');
         console.debug("getbalance response: ", info);
         return {
             info
@@ -54,7 +29,7 @@ async function getBalanceBTC() {
 // RPC to get Bitcoin address
 async function getAddressBTC() {
     try {
-        const info = await makeRpcCallBTC('getnewaddress');
+        const info = await makeRpcCallBTC(config, 'getnewaddress');
         console.debug("getnewaddress response: ", info);
         return {
             info
@@ -68,7 +43,7 @@ async function getAddressBTC() {
 // RPC to send coins to Bitcoin address
 async function sendToAddressBTC(address, amount) {
     try {
-        const info = await makeRpcCallBTC('sendtoaddress', [address, amount]);
+        const info = await makeRpcCallBTC(config, 'sendtoaddress', [address, amount]);
         console.debug("sendtoaddress response: ", info);
         return {
             info
@@ -87,20 +62,8 @@ async function sendToAddressBTC(address, amount) {
 async function getAddressThunder() {
     try {
         console.log("Getting Thunder address via CLI");
-        return new Promise((resolve, reject) => {
-            exec('~/Downloads/thunder-cli-latest-x86_64-unknown-linux-gnu get-new-address', (error, stdout, stderr) => {
-                if (error) {
-                    console.error('Failed to get Thunder address:', error);
-                    reject(error);
-                    return;
-                }
-                if (stderr) {
-                    console.error('Thunder CLI stderr:', stderr);
-                }
-                console.debug("Thunder CLI response:", stdout);
-                resolve({ info: stdout.trim() });
-            });
-        });
+        const info = await execThunderCli(config, 'get-new-address');
+        return { info };
     } catch (error) {
         console.error('Failed to get Thunder address:', error);
         throw error;
@@ -125,20 +88,8 @@ async function verifyThunderPayment(txid, address, amount) {
 async function getAddressBitNames() {
     try {
         console.log("Getting BitNames address via CLI");
-        return new Promise((resolve, reject) => {
-            exec('~/Downloads/bitnames-cli get-new-address', (error, stdout, stderr) => {
-                if (error) {
-                    console.error('Failed to get BitNames address:', error);
-                    reject(error);
-                    return;
-                }
-                if (stderr) {
-                    console.error('BitNames CLI stderr:', stderr);
-                }
-                console.debug("BitNames CLI response:", stdout);
-                resolve({ info: stdout.trim() });
-            });
-        });
+        const info = await execBitnamesCli(config, 'get-new-address');
+        return { info };
     } catch (error) {
         console.error('Failed to get BitNames address:', error);
         throw error;
@@ -348,8 +299,22 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
-const PORT = process.env.PORT || 3333;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Verify CLI tools before starting server
+async function startServer() {
+    try {
+        await verifyConfig(config);
+        
+        // Start server
+        const PORT = process.env.PORT || 3333;
+        const HOST = process.env.HOST || 'localhost';
+        app.listen(PORT, HOST, () => {
+            console.log(`Server is running on ${HOST}:${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error.message);
+        process.exit(1);
+    }
+}
+
+// Replace the existing server start code at the bottom with:
+startServer();
