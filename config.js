@@ -20,7 +20,7 @@ const defaultConfig = {
         cliPath: '~/Downloads/bitnames-cli',
         // TODO: the URL format is not yet supported by the BitNames CLI, 
         // update this at a later point
-        rpcAddr: '127.0.0.1:6002'  // Default BitNames RPC address
+        rpcUrl: 'http://127.0.0.1:6002'  // Default BitNames RPC address
     }
 };
 
