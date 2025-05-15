@@ -53,7 +53,15 @@ async function sendToAddressBTC(address, amount) {
 }
 
 
-
+async function validateAddressBTC(address) {
+    try {
+        const info = await makeRpcCallBTC(config, 'validateaddress', [address]);
+        return { info };
+    } catch (error) {
+        console.error('Failed to validate BTC address:', error);
+        throw error;
+    }
+}
 
 // Thunder interaction
 
@@ -189,7 +197,13 @@ app.post('/withdraw', async (req, res) => {
         });
     }
 
-    // TODO validate address format
+    // validate withdrawal destination address
+    const addressValidation = await validateAddressBTC(withdrawal_destination);
+    if (!addressValidation.info.isvalid) {
+        const error = addressValidation.info.error ? `Invalid L1 BTC address: ${addressValidation.info.error}` : "Invalid L1 BTC address";
+        return res.status(400).json({ error });
+    }
+
 
     // Check L2 chain name
     if (layer_2_chain_name != "Thunder" && layer_2_chain_name != "BitNames") {
