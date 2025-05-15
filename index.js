@@ -1,7 +1,5 @@
-const { exec } = require('child_process');
 const express = require('express');
 const crypto = require('crypto');
-const axios = require('axios');
 const { config, verifyConfig } = require('./config');
 const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
 const { execThunderCli } = require('./utils/thunder-cli');
@@ -143,10 +141,20 @@ app.get('/balance', async (req, res) => {
 app.post('/withdraw', async (req, res) => {
     const { withdrawal_destination, withdrawal_amount, layer_2_chain_name } = req.body;
     
+    const missing_fields = [];
     // Validate required fields
-    if (!withdrawal_destination || !withdrawal_amount || !layer_2_chain_name) {
+    if (!withdrawal_destination) {
+        missing_fields.push('withdrawal_destination');
+    }
+    if (!withdrawal_amount) {
+        missing_fields.push('withdrawal_amount');
+    }
+    if (!layer_2_chain_name) {
+        missing_fields.push('layer_2_chain_name');
+    }
+    if (missing_fields.length > 0) {
         return res.status(400).json({ 
-            error: 'withdrawal_destination, withdrawal_amount, and layer_2_chain_name are required' 
+            error: 'Missing required fields: ' + missing_fields.join(', ')
         });
     }
 
@@ -159,15 +167,29 @@ app.post('/withdraw', async (req, res) => {
     }
 
     // Validate withdrawal_amount is an integer
-    const amount = parseInt(withdrawal_amount);
-    if (isNaN(amount) || amount.toString() !== withdrawal_amount) {
+    const amount = Number.parseFloat(withdrawal_amount);
+    if (Number.isNaN(amount)) {
         return res.status(400).json({
-            error: 'withdrawal_amount must be an integer'
+            error: 'withdrawal_amount must be a number'
+        });
+    }
+
+    if (amount <= 0) {
+        return res.status(400).json({
+            error: 'withdrawal_amount must be positive'
+        });
+    }
+
+    // max withdrawal amount is 10% of our mainchain balance
+    const balance = await getBalanceBTC();
+    const maxWithdrawalAmount = balance.info * 0.1;
+    if (amount > maxWithdrawalAmount) {
+        return res.status(400).json({
+            error: `withdrawal amount is above max: ${maxWithdrawalAmount.toString()}`
         });
     }
 
     // TODO validate address format
-    // TODO validate amount format
 
     // Check L2 chain name
     if (layer_2_chain_name != "Thunder" && layer_2_chain_name != "BitNames") {
@@ -216,6 +238,7 @@ app.post('/withdraw', async (req, res) => {
     withdrawalRequest.hash = requestHash;
     
     // Track new withdrawal request
+    console.log("pushing new withdrawal request: ", withdrawalRequest);
     withdrawalRequests.push(withdrawalRequest);
 
     res.json({
