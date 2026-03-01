@@ -1,4 +1,4 @@
-const { access, constants } = require('fs/promises');
+const { access, constants, readFile } = require('fs/promises');
 const path = require('path');
 const axios = require('axios');
 const { makeRpcCallBTC } = require('./utils/bitcoin-rpc');
@@ -43,6 +43,31 @@ async function verifyExecutable(filePath, name) {
     }
 }
 
+// Read Bitcoin Core cookie file and return { user, password }
+async function readCookieFile(cookieFile) {
+    const expandedPath = cookieFile.replace(/^~/, process.env.HOME);
+    const resolvedPath = path.resolve(expandedPath);
+    try {
+        const contents = (await readFile(resolvedPath, 'utf-8')).trim();
+        const separatorIndex = contents.indexOf(':');
+        if (separatorIndex === -1) {
+            throw new Error(`Invalid cookie file format in ${resolvedPath}: expected "user:password"`);
+        }
+        return {
+            user: contents.substring(0, separatorIndex),
+            password: contents.substring(separatorIndex + 1)
+        };
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            throw new Error(`Bitcoin Core cookie file not found at ${resolvedPath}. Is Bitcoin Core running?`);
+        }
+        if (error.code === 'EACCES') {
+            throw new Error(`Permission denied reading cookie file at ${resolvedPath}.`);
+        }
+        throw error;
+    }
+}
+
 // Verify Bitcoin Core RPC connection
 async function verifyBitcoinRpc(config) {
     try {
@@ -52,7 +77,10 @@ async function verifyBitcoinRpc(config) {
         if (error.code === 'ECONNREFUSED') {
             throw new Error(`Could not connect to Bitcoin Core at ${config.bitcoin.host}:${config.bitcoin.port}`);
         } else if (error.response && error.response.status === 401) {
-            throw new Error('Bitcoin Core RPC authentication failed. Check your username and password.');
+            const hint = config.bitcoin.cookieFile
+                ? 'Check your cookie file path.'
+                : 'Check your username and password.';
+            throw new Error(`Bitcoin Core RPC authentication failed. ${hint}`);
         }
         throw new Error(`Bitcoin Core RPC verification failed: ${error.message}`);
     }
@@ -89,6 +117,15 @@ async function verifyBitNamesConnection(config) {
 // Verify all CLI tools are available
 async function verifyConfig(config) {
     try {
+        // If cookie file is configured, read credentials from it
+        if (config.bitcoin.cookieFile) {
+            console.log('Reading Bitcoin Core cookie file...');
+            const cookie = await readCookieFile(config.bitcoin.cookieFile);
+            config.bitcoin.user = cookie.user;
+            config.bitcoin.password = cookie.password;
+            console.log('Cookie file read successfully');
+        }
+
         // First verify Bitcoin Core connection
         console.log('Verifying Bitcoin Core RPC connection...');
         await verifyBitcoinRpc(config);
@@ -122,7 +159,8 @@ const config = {
     bitcoin: {
         url: process.env.BITCOIN_RPC_URL || defaultConfig.bitcoin.url,
         user: process.env.BITCOIN_RPC_USER || defaultConfig.bitcoin.user,
-        password: process.env.BITCOIN_RPC_PASS || defaultConfig.bitcoin.password
+        password: process.env.BITCOIN_RPC_PASS || defaultConfig.bitcoin.password,
+        cookieFile: process.env.BITCOIN_RPC_COOKIE_FILE || null
     },
     thunder: {
         cliPath: process.env.THUNDER_CLI_PATH || defaultConfig.thunder.cliPath,
