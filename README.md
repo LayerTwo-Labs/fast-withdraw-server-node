@@ -27,13 +27,33 @@ The server can be configured through environment variables or by modifying the d
 
 ### Bitcoin Core Configuration
 
-Configure the Bitcoin Core RPC connection:
+Configure the Bitcoin Core RPC connection using either a cookie file or username/password.
+
+#### Cookie file authentication (recommended)
+
+When Bitcoin Core is started without explicit `rpcuser`/`rpcpassword` settings, it
+generates a `.cookie` file in its data directory. Point the server at this file:
 
 ```
-BITCOIN_RPC_URL=http://127.0.0.1:38332    # Bitcoin Core RPC host
+BITCOIN_RPC_URL=http://127.0.0.1:38332                  # Bitcoin Core RPC URL
+BITCOIN_RPC_COOKIE_FILE=~/.bitcoin/.cookie               # Path to cookie file
+```
+
+The cookie file is re-read at server startup. If Bitcoin Core restarts (and
+generates a new cookie), the server must be restarted as well.
+
+#### Username/password authentication
+
+Alternatively, configure explicit RPC credentials:
+
+```
+BITCOIN_RPC_URL=http://127.0.0.1:38332    # Bitcoin Core RPC URL
 BITCOIN_RPC_USER=user                     # Bitcoin Core RPC username
 BITCOIN_RPC_PASS=password                 # Bitcoin Core RPC password
 ```
+
+If `BITCOIN_RPC_COOKIE_FILE` is set, it takes priority over `BITCOIN_RPC_USER`
+and `BITCOIN_RPC_PASS`.
 
 ### Layer 2 Configuration
 
